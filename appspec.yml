@@ -1,0 +1,14 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /app
+hooks:
+  BeforeInstall:
+    - location: stop_container.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: start_container.sh
+      timeout: 300
+      runas: root

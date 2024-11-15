@@ -1,0 +1,31 @@
+version: 0.2
+
+env:
+  parameter-store:
+    ECR_REPOSITORY_URL: /myapp/ecr-repository/url
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Ensuring AWS CLI is installed..."
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip
+      - sudo ./aws/install
+      - aws --version
+  pre_build:
+    commands:
+      - echo "Installing dependencies..."
+      - pip install -r requirements.txt
+      - echo "Logging in to AWS ECR..."
+      - aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin "$ECR_REPOSITORY_URL"
+  build:
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t "$ECR_REPOSITORY_URL:simple-python-flask-app-latest" .
+  post_build:
+    commands:
+      - echo "Pushing Docker image to AWS ECR..."
+      - docker push "$ECR_REPOSITORY_URL:simple-python-flask-app-latest"
+      - echo "Build completed successfully!"
